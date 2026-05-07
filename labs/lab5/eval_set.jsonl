@@ -1,0 +1,5 @@
+{"id":"q01","question":"What does MCP stand for?","gold":"Model Context Protocol"}
+{"id":"q02","question":"Who created Ruflo (originally Claude Flow)?","gold":"Reuven Cohen"}
+{"id":"q03","question":"What's the default port of claude-peers broker?","gold":"7899"}
+{"id":"q04","question":"What protocol does MCP use over stdio?","gold":"JSON-RPC 2.0"}
+{"id":"q05","question":"Which company released the A2A (Agent2Agent) protocol?","gold":"Google"}

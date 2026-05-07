@@ -1,0 +1,9 @@
+build/tutorial.md
+build/*.aux
+build/*.log
+build/*.out
+.DS_Store
+__pycache__/
+*.pyc
+.venv/
+node_modules/
