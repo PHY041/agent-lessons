@@ -17,21 +17,28 @@ MCP（Model Context Protocol，Anthropic 2024-11 发布）是当前 agent-to-age
 ## 2. 协议本质（**这一节最重要**）
 
 ```
-MCP = JSON-RPC 2.0 + stdio transport
-     ↑              ↑
-     消息格式        通信通道（不是 HTTP！）
+MCP 消息格式 = JSON-RPC 2.0
+MCP transport 选项：
+  ① stdio (本地 child process)        ← 本课重点
+  ② Streamable HTTP (远程 server)     ← 2025-11-25 spec 正式版
 ```
 
-**协议层只有 4 件事**：
+**完整 MCP spec**: https://modelcontextprotocol.io/specification/2025-03-26  
+（实际表面比这里展示的多，但本课聚焦最常用的 stdio + tools 路径）
+
+**最常见的协议方法**（学完这些足够你写 80% 的 MCP server）：
 
 | 方向 | Method | 作用 |
 |---|---|---|
 | 客户端→服务端 | `initialize` | 握手，交换版本和能力 |
+| 客户端→服务端 (notification) | `notifications/initialized` | 客户端确认初始化完成（**lifecycle 必需**）|
 | 客户端→服务端 | `tools/list` | 列出可用工具 |
 | 客户端→服务端 | `tools/call` | 调用某个工具 |
 | 服务端→客户端 | `notifications/*` | 主动推送（无需响应）|
 
-**transport 层 3 条铁律**：
+> ⚠️ 注：完整 MCP 还有 `resources/*`、`prompts/*`、`logging/*` 等子树。本课只覆盖 `tools` 路径。学完想深入再看官方 spec。
+
+**stdio transport 3 条铁律**：
 
 1. **stdout 只能输出协议消息**（每行一条 JSON）
 2. **stderr 留给日志**——`print()` 进 stdout 不是合法 JSON 整个 server 直接挂
@@ -146,12 +153,15 @@ capabilities: {
 ```bash
 cd ~/Desktop/agent-lessons/labs/lab1
 
-printf '%s\n%s\n%s\n' \
+printf '%s\n%s\n%s\n%s\n' \
   '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' \
+  '{"jsonrpc":"2.0","method":"notifications/initialized","params":{}}' \
   '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' \
   '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"echo","arguments":{"text":"你好 a2a 世界"}}}' \
   | python3 toy_mcp_server.py
 ```
+
+> 注意第 2 条消息：`notifications/initialized` 是 lifecycle **必需**的——客户端 initialize 之后必须发这条 notification 告诉 server 准备好了。
 
 ### 真实输出
 
@@ -198,8 +208,9 @@ printf '%s\n%s\n%s\n' \
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ ① MCP 不是 HTTP，是 stdio + JSON-RPC                        │
-│   → 每个 MCP server 是 child process，stdin 进 / stdout 出  │
+│ ① MCP 消息格式是 JSON-RPC 2.0                               │
+│   → transport 可以是 stdio（本地 child process）            │
+│     或 Streamable HTTP（远程 server）                       │
 ├─────────────────────────────────────────────────────────────┤
 │ ② 真正的 a2a 实时通信靠 notifications/*                     │
 │   → 服务端"主动推"是非标准但极强大的扩展                    │

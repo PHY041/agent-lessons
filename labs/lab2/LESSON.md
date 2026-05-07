@@ -49,16 +49,18 @@
 
 ## 3. 协议对比表
 
-| 维度 | **MCP** | **Google A2A** | **IBM ACP** | **ANP** |
+| 维度 | **MCP** | **Google A2A** | **IBM ACP** ⚠️ | **ANP** |
 |---|---|---|---|---|
-| 发布方 | Anthropic | Google | IBM (Linux Foundation) | 中国开源社区 |
-| 解决问题 | agent ↔ tool | agent ↔ agent | agent ↔ agent (企业级) | 跨组织 agent 网络 |
-| Transport | stdio / HTTP+SSE | HTTP+JSON / gRPC | HTTP+JSON | HTTP+JSON / WebSocket |
-| 消息格式 | JSON-RPC 2.0 | Custom JSON | Custom JSON (FIPA-inspired) | DID-based JSON |
-| 身份系统 | 无（信任 client） | OIDC / OAuth | 企业 identity | DID (去中心化身份) |
-| 流式输出 | ✅ via SSE | ✅ via SSE | ✅ via SSE | ✅ |
-| 主要用户 | Claude Code, Cursor 等 100+ 客户端 | Google Cloud, Salesforce, Box | IBM watsonx 客户 | 国内项目较多 |
-| GitHub | 已有数百 servers | A2A SDK + 50+ adopters | Apache 2.0 仓库 | ANP-Agent-Network |
+| 发布方 | Anthropic | Google → Linux Foundation | BeeAI/IBM (已 archived，并入 A2A)| W3C Community Group draft |
+| 解决问题 | agent ↔ tool | agent ↔ agent | 历史方案，已被 A2A 取代 | 去中心化 agent 网络 + 身份 |
+| Transport | stdio / Streamable HTTP | JSON-RPC over HTTPS / gRPC / REST | REST + JSON envelope | HTTP + W3C DID |
+| 消息格式 | JSON-RPC 2.0 | JSON-RPC 2.0 (`message/send`) | Custom JSON (FIPA-inspired) | DID-signed JSON |
+| 身份系统 | 无（信任 client） | Signed AgentCards (v0.3) | HTTP auth | DID (first-class) |
+| 流式输出 | ✅ via SSE / Streamable HTTP | ✅ via SSE | ✅ via SSE | ✅ |
+| 主要用户 | Claude Code, Cursor 等 100+ 客户端 | Google Cloud, Salesforce, AWS Bedrock 等（50+ launch partners）| BeeAI runtime 内部 | pre-spec |
+| GitHub | 已有数百 servers | A2A SDK 23.6K stars | i-am-bee/acp（archived 路径）| ANP-Agent-Network |
+
+> ⚠️ **ACP status update (2026-05)**: ACP 已经折叠并入 A2A 项目，作为 historical contribution。如果你今天想用，**默认选 A2A**，ACP 的 performative 概念可作设计参考。
 
 ---
 
@@ -119,7 +121,7 @@
 
 ### A2A 关键 — Agent Card（自我介绍）
 
-每个 A2A agent 都暴露 `/.well-known/agent.json`：
+每个 A2A agent 都暴露 `/.well-known/agent-card.json`（**注意当前 spec 用 `agent-card.json` 不是 `agent.json`**）：
 
 ```json
 {
@@ -140,7 +142,9 @@
 
 **这是 A2A 最大的创新**——agents 通过 well-known URL 发现彼此能力，不需要预先配置。
 
-### ACP — IBM 的方案（FIPA-inspired performatives）
+### ACP — IBM 的早期方案（已 archived，并入 A2A）
+
+ACP 借鉴了 1990s FIPA 标准（performative 概念），用于早期 agent 之间的 RESTful 通信。**当前已被 A2A 取代**——历史 schema 大致这样：
 
 ```json
 {
@@ -156,9 +160,13 @@
 }
 ```
 
-ACP 显著借鉴了 1990s FIPA 标准（performative 概念）——`request` / `inform` / `agree` / `refuse` / `confirm` 等。**学术派**。
+**关注点**：FIPA-style performatives（`request` / `inform` / `agree` / `refuse` / `confirm` 等）作为消息分类是好主意，A2A 在此之上做了简化。新项目直接用 A2A 即可。
 
-### ANP — DID-based 去中心化身份
+### ANP — emerging 去中心化协议（pre-spec）
+
+ANP（Agent Network Protocol）目前是 W3C Community Group 的 draft 阶段。强调**去中心化身份**（DID, decentralized identifier）——agent 靠加密签名互相认证，不需要中心化注册中心。
+
+参考 schema（**实现细节仍在演进**）：
 
 ```json
 {
@@ -172,7 +180,7 @@ ACP 显著借鉴了 1990s FIPA 标准（performative 概念）——`request` / 
 }
 ```
 
-ANP 强调**去中心化身份**（DID, decentralized identifier）——agent 不需要中心化注册中心，靠加密签名互相认证。**Web3 派**。
+**当前状态**：未 production-ready，只用于研究。如果你长期看好"跨组织 agent 网络"，关注它的 spec 进展，但短期项目不要赌。
 
 ---
 
@@ -204,22 +212,18 @@ ANP 强调**去中心化身份**（DID, decentralized identifier）——agent �
 - 你已经在用 `mcp__github__create_pull_request` 等 25+ 工具
 - 一行配置接通 GitHub，不用每次粘贴 API 文档
 
-### 场景 ② Google A2A — Salesforce Agentforce
-- Salesforce 用 A2A 让 Agentforce agents 之间互相调用
-- 例如 LeadGen agent → Pricing agent → ContractDraft agent
-- 公开 demo: https://www.salesforce.com/agentforce/
+### 场景 ② Google A2A — 50+ launch partners
+- Google 发布 A2A 时公布了 **50+ technology partners**（Salesforce / SAP / Workday / ServiceNow / Box 等）
+- 公开公告: https://developers.googleblog.com/en/a2a-a-new-era-of-agent-interoperability/
+- 注：媒体二手报道经常把这个数字放大，**官方声明是"more than 50 technology partners"**
 
-### 场景 ③ A2A — Box / Adobe / Box AI
-- Box 集成 A2A 让 storage agent 跟 LLM agent 通信
-- 公开案例: Google A2A blog 列了 50+ 早期 adopter
+### 场景 ③ A2A — 三大云 hyperscaler 原生支持
+- AWS Bedrock AgentCore + Azure AI Foundry + Google Agent Engine 都 ship 了 native A2A endpoints
+- 跨厂商 agent 互通是 A2A 的杀手级用例
 
-### 场景 ④ ACP — IBM watsonx Orchestrate
-- 企业流程自动化，HR / 财务 / 客服 agent 协作
-- 走 ACP 协议，每条消息有 audit log
-
-### 场景 ⑤ ANP — 国内 agent 互联实验
-- ANP-Agent-Network 仓库有几十个 agent 互联 demo
-- 做跨域 agent 调用，DID 身份
+### 场景 ④ ACP（历史）— IBM watsonx Orchestrate
+- 早期企业 agent 协作（HR / 财务 / 客服），现在新 deployment 走 A2A
+- 老项目 audit trail 可作参考
 
 ---
 

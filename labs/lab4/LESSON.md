@@ -48,12 +48,21 @@ researcher → architect → coder → tester → reviewer
 
 ## 3. Ruflo 实战 — 升级到 --full
 
-我们 Lab 1 装的是 `--minimal`（8 skills）。要看真本事必须 `--full`：
+> **前置**（Lab 4 第一次跑要做）：先建一个 sandbox 目录并 init Ruflo。如果你跟 Lab 1 走完了创建 `~/Desktop/ruflo-spike` 那就跳过这一步；否则：
+>
+> ```bash
+> mkdir -p ~/Desktop/ruflo-spike && cd ~/Desktop/ruflo-spike
+> npx -y ruflo@latest init --minimal --no-global  # 先 init 出基础结构
+> ```
+
+升级到 `--full` 看真本事（137 skills + HNSW + neural）：
 
 ```bash
 cd ~/Desktop/ruflo-spike
 npx -y ruflo@latest init --full --no-global --force
 ```
+
+> ⚠️ `--no-global` 防止 Ruflo 改你的 `~/.claude/CLAUDE.md`（issue #1744）。生产 setup 不带这个 flag 就会污染全局配置。
 
 **对比表**：
 

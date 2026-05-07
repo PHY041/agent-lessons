@@ -7,13 +7,13 @@
 
 ## 1. 4 大协议核心矩阵
 
-| Dim | **MCP** (Anthropic) | **A2A** (Google → Linux Foundation) | **ACP** (BeeAI/IBM/LF) | **ANP** (W3C-CG) |
+| Dim | **MCP** (Anthropic) | **A2A** (Google → Linux Foundation) | **ACP** ⚠️ archived | **ANP** (pre-spec) |
 |---|---|---|---|---|
-| **Problem** | Tool/data access for one LLM | Peer agent collab across vendors | Agent runtime (long-running, multimodal) | Decentralized agent discovery + identity |
-| **Transport** | JSON-RPC 2.0 over stdio / Streamable HTTP (Nov 2025 spec) | JSON-RPC 2.0 over HTTPS (+ gRPC in v0.3) | REST over HTTP, JSON envelope w/ MessageParts | HTTP + W3C DID (`did:wba`), end-to-end encrypted |
-| **Primitives** | `tools`, `resources`, `prompts` | `AgentCard`, `Task`, `Message`, `Artifact` | `Run`, `Message[].parts[]`, `Await`, `Sessions` | DID doc + `WNS` handles + payment hooks |
+| **Problem** | Tool/data access for one LLM | Peer agent collab across vendors | Historical: agent runtime (folded into A2A) | Decentralized agent discovery + identity |
+| **Transport** | JSON-RPC 2.0 over stdio / Streamable HTTP (Nov 2025 spec) | JSON-RPC 2.0 over HTTPS, REST `POST /message:send`, gRPC `SendMessage` | REST over HTTP, JSON envelope (legacy) | HTTP + W3C DID (`did:wba`), end-to-end encrypted (work in progress) |
+| **Primitives** | `tools`, `resources`, `prompts` | `AgentCard`, `Task`, `Message`, `Artifact` | `Run`, `Message[].parts[]` (legacy) | DID doc + payment hooks (draft) |
 | **Identity** | Local trust / OAuth on remote | Signed AgentCards (v0.3) | HTTP auth, no native identity | First-class — DID + signature per message |
-| **Status / stars** | ~10K servers, 8K stars on spec | 23.6K stars, 150+ orgs in prod | 1K stars, BeeAI runtime only | Pre-spec, W3C-CG draft |
+| **Status / stars** | Spec ~8K stars | 23.6K stars, **50+ launch partners** (per Google's announcement) | Project archived, folded into A2A | W3C Community Group draft (no production) |
 
 **Mental model**：
 - **MCP = 垂直**（LLM ↔ tools）
@@ -66,7 +66,7 @@
 | 4 | **Replit Agent + Ghostwriter** | MCP | IDE 内 tooling（Anthropic launch list）|
 | 5 | **Zed Editor** | MCP | Context servers (#29370, spec 2025-03-26) |
 | 6 | **Anthropic claude.ai Research** | Internal | Opus 4 lead + Sonnet 4 subagents → **+90.2% accuracy / 15× tokens** |
-| 7 | **Salesforce Agentforce + ServiceNow + SAP Joule + Workday** | A2A | Cross-vendor agent handoffs (150-org A2A consortium) |
+| 7 | **Salesforce Agentforce + ServiceNow + SAP Joule + Workday** | A2A | Cross-vendor agent handoffs (Google A2A 公告里的 50+ launch partners) |
 | 8 | **AWS Bedrock AgentCore + Azure AI Foundry + Google Agent Engine** | A2A | 三大 hyperscaler 都 ship 了 native A2A endpoints |
 | 9 | **Cognition Devin 2.0** | **拒绝 multi-agent** | 显式选择 single-threaded writes，多个 Devin 实例并行用 REST API。**重要反对派证据** |
 
@@ -107,12 +107,12 @@
 ┌─────────────────────────────────────────────────────────────┐
 │ ✅ MCP 赢了垂直层（LLM ↔ tool）— 默认用                     │
 │                                                              │
-│ ✅ A2A 正在赢水平层（150 orgs + 三大云原生支持）             │
+│ ✅ A2A 正在赢水平层（50+ launch partners + 三大云原生支持）  │
 │   跨组织协作时采用                                           │
 │                                                              │
-│ ⚠️  ACP 跟 A2A 高度重叠 — 只在 BeeAI runtime 里用            │
+│ ⚠️  ACP 已 archived — 历史项目，新系统不要选                 │
 │                                                              │
-│ 🔮 ANP 是唯一有真身份的协议 — 长期下注但还没 production-ready │
+│ 🔮 ANP 是 pre-spec 的去中心化协议 — 长期关注但短期不能用     │
 │                                                              │
 │ 🚨 用任何 A2A 之前先读 Cognition 反对派 —                    │
 │    "Don't Build Multi-Agents" 是 2025-2026 最严密的反方论证   │

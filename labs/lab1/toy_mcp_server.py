@@ -84,9 +84,16 @@ def main():
         if not line:
             continue
         try:
-            handle(json.loads(line))
+            msg = json.loads(line)
+        except json.JSONDecodeError as e:
+            # JSON-RPC 2.0 parse error
+            respond(None, error={"code": -32700, "message": f"Parse error: {e}"})
+            continue
+        try:
+            handle(msg)
         except Exception as e:
-            log(f"error: {e}")
+            # JSON-RPC 2.0 internal error
+            respond(msg.get("id"), error={"code": -32603, "message": f"Internal error: {e}"})
 
 
 if __name__ == "__main__":

@@ -6,13 +6,19 @@
 
 ## 1. 5 大核心 Benchmark 实时数据
 
-| Benchmark | 测什么 | 单 Agent Baseline | Multi-Agent SOTA | 主流架构 |
-|---|---|---|---|---|
-| **GAIA** (466 题) | 通用 assistant：推理+多模态+浏览+工具 | GPT-5 Mini bare 44.8% | OPS-Agentic-Search **92.4%** / HAL+Sonnet 4.5 74.6% | Scaffolded planner + tool-use ensemble |
-| **SWE-bench Verified** (500 任务) | 真实 GitHub bug fix | mini-SWE-agent ReAct ~50% | Claude Mythos Preview **93.9%** / Opus 4.7 Adaptive 87.6% | Multi-rollout + review/critic agent |
-| **AgentBench** (8 环境) | OS/DB/Web/卡牌/家居 全栈 | GPT-4 ~4.0/10 | 分环境差异巨大，整体 SOTA <6.5/10 | 注意：聚合分掩盖单环境 0 分塌陷 |
-| **WebArena** (812 任务, 5 站点) | 真实网站多步操作 | 早期 14% | Claude Mythos Preview **68.7%** | Planner + Executor + Memory 三层 |
-| **Magentic-One/Bench** | 异构模态协作 | 单 agent baseline | Orchestrator + specialists **+3-4pp** | Hierarchical, ledger-based 任务台账 |
+> ⚠️ **Source 类型区分**（影响数字可信度）：
+> - **官方** = 该 benchmark 自己的 leaderboard
+> - **HAL/Steel** = 第三方学术 / community 维护的 leaderboard
+> - **BenchLM** = 第三方聚合站点（model-page 数字，未必跟 official 完全对齐）
+> - **官方公告** = 模型 vendor 自己宣布的数字
+
+| Benchmark | 测什么 | 单 Agent Baseline | Multi-Agent SOTA | Source 类型 | 主流架构 |
+|---|---|---|---|---|---|
+| **GAIA** (466 题) | 通用 assistant：推理+多模态+浏览+工具 | GPT-5 Mini bare 44.8% | OPS-Agentic-Search **92.4%** / HAL+Sonnet 4.5 74.6% | HAL/Steel community | Scaffolded planner + tool-use ensemble |
+| **SWE-bench Verified** (500 任务) | 真实 GitHub bug fix | mini-SWE-agent ReAct ~50% | Claude Mythos Preview **93.9%** / Opus 4.7 Adaptive 87.6% | BenchLM (model-page) | Multi-rollout + review/critic agent |
+| **AgentBench** (8 环境) | OS/DB/Web/卡牌/家居 全栈 | GPT-4 ~4.0/10 | 分环境差异巨大，整体 SOTA <6.5/10 | 官方（THUDM）| 注意：聚合分掩盖单环境 0 分塌陷 |
+| **WebArena** (812 任务, 5 站点) | 真实网站多步操作 | 早期 14% | Claude Mythos Preview **68.7%** | BenchLM (model-page) | Planner + Executor + Memory 三层 |
+| **Magentic-One/Bench** | 异构模态协作 | 单 agent baseline | Orchestrator + specialists **+3-4pp** | 官方（Microsoft）| Hierarchical, ledger-based 任务台账 |
 
 ---
 

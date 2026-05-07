@@ -11,8 +11,10 @@ set -e
 SPIKE_DIR=~/Desktop/ruflo-spike
 
 if [ ! -d "$SPIKE_DIR" ]; then
-  echo "❌ $SPIKE_DIR 不存在。先跑 Lab 1 创建。"
-  exit 1
+  echo "📦 $SPIKE_DIR 不存在，正在创建并 init..."
+  mkdir -p "$SPIKE_DIR"
+  cd "$SPIKE_DIR"
+  npx -y ruflo@latest init --minimal --no-global || { echo "❌ ruflo init failed"; exit 1; }
 fi
 
 cd "$SPIKE_DIR"
@@ -52,7 +54,10 @@ ls -la .claude-flow/logs/ 2>/dev/null | head -20
 
 echo
 echo "=== 7. 看共享 memory ==="
-npx -y ruflo@latest memory list --top-k 5
+# Note: Ruflo CLI evolves — check `ruflo memory --help` for current flags.
+# Older builds: `memory list`. Newer builds: `memory search --limit N`.
+npx -y ruflo@latest memory --help 2>&1 | head -10
+npx -y ruflo@latest memory list 2>/dev/null || npx -y ruflo@latest memory search --limit 5 2>/dev/null || echo "(memory subcommand may differ in your Ruflo version — see help above)"
 
 echo
 echo "完成。要清理：npx ruflo daemon stop"

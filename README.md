@@ -136,7 +136,7 @@ Lab 5 (评估) ←───────────────┤
 
 ## 📜 License
 
-MIT — 随便用，注明出处即可。
+MIT — 完整 license 文本见 [LICENSE](LICENSE) 文件。
 
 ---
 
@@ -151,4 +151,4 @@ MIT — 随便用，注明出处即可。
 
 ---
 
-🤖 教程结构 + 代码示例由 Claude（Anthropic）协助生成，所有协议数据 + benchmark 数字均经过公开 source 校验。
+🤖 教程结构 + 代码示例由 Claude（Anthropic）协助生成，并经过 OpenAI Codex 独立 review 校验关键 fact。协议生态演进很快——本教程是 2026-05 的 snapshot；阅读时请以官方 spec 为准（每节末尾都有官方链接）。

@@ -1,6 +1,6 @@
 # Lab 5 — 评估：科学证明你的 swarm 比单 agent 强
 
-> **学完你会**：知道 multi-agent 系统怎么科学评估——不是只看 accuracy，要看 4 维（accuracy / token cost / latency / robustness）。能写一个 30 行的评估脚本跑自己的 held-out 集。
+> **学完你会**：知道 multi-agent 系统怎么科学评估——不是只看 accuracy，要看 4 维（accuracy / cost / latency / repeatability）。能写一个评估脚本跑自己的 held-out 集。
 
 ---
 
@@ -42,62 +42,72 @@ multi-agent 系统的常见**幻觉**：
 
 ---
 
-## 4. 30 行 Python 评估脚本（**可直接跑**）
+## 4. Python 评估脚本（**可直接跑**）
 
-`eval_agent.py` 已在本目录：
+`eval_agent.py` 已在本目录。完整版本请直接读文件——这里展示核心逻辑：
 
 ```python
-# eval_agent.py — 4 维度评估：accuracy / token_cost / latency / robustness
+# eval_agent.py — 4 维度评估：accuracy / repeatability / latency / cost
 import json, time, statistics
 from pathlib import Path
 
-def evaluate(agent_fn, dataset: list[dict], n_seeds: int = 3) -> dict:
-    """agent_fn(task: str) -> {'answer': str, 'tokens_in': int, 'tokens_out': int}"""
+def evaluate(agent_fn, dataset: list[dict], n_runs: int = 3) -> dict:
+    """
+    n_runs: 同任务重复执行次数（适合 stochastic agents，eval repeatability）。
+            deterministic agent 用 n_runs=1。
+    注意：脚本不主动注入 seed —— 随机性由 agent_fn 内部处理。
+          如果想测真正的 robustness（对扰动输入的稳健），需要 dataset 层面
+          预生成 paraphrase 变体，本脚本不替你做这件事。
+    """
     results = []
     for task in dataset:
-        per_seed = []
-        for seed in range(n_seeds):  # robustness = 跨 seed 一致性
+        per_run = []
+        for _ in range(n_runs):
             t0 = time.perf_counter()
             try:
                 out = agent_fn(task["question"])
                 ok = str(out["answer"]).strip().lower() == str(task["gold"]).strip().lower()
-                per_seed.append({
-                    "ok": ok,
-                    "latency": time.perf_counter() - t0,
-                    # Sonnet 4.6 价格示例：$3/M in, $15/M out
-                    "cost": out["tokens_in"] * 3e-6 + out["tokens_out"] * 1.5e-5
-                })
+                per_run.append({"ok": ok, "latency": time.perf_counter() - t0,
+                                "cost": out["tokens_in"] * 3e-6 + out["tokens_out"] * 1.5e-5})
             except Exception as e:
-                per_seed.append({
-                    "ok": False,
-                    "latency": time.perf_counter() - t0,
-                    "cost": 0,
-                    "err": str(e)
-                })
-        accs = [r["ok"] for r in per_seed]
+                per_run.append({"ok": False, "latency": time.perf_counter() - t0, "cost": 0.0, "err": str(e)})
+        accs = [r["ok"] for r in per_run]
         results.append({
             "task_id": task["id"],
-            "pass@1": sum(accs) / len(accs),
-            "consistent": len(set(accs)) == 1,
-            "avg_latency": statistics.mean(r["latency"] for r in per_seed),
-            "avg_cost_usd": statistics.mean(r["cost"] for r in per_seed)
+            "success_rate": sum(accs) / len(accs),    # n_runs 内成功比例
+            "repeatable": len(set(accs)) == 1,        # 跨 run 是否完全一致
+            "avg_latency": statistics.mean(r["latency"] for r in per_run),
+            "task_total_cost_usd": sum(r["cost"] for r in per_run),  # 真实花费总和
         })
     return {
-        "accuracy": statistics.mean(r["pass@1"] for r in results),
-        "robustness": sum(r["consistent"] for r in results) / len(results),
+        "accuracy": statistics.mean(r["success_rate"] for r in results),
+        "repeatability": sum(r["repeatable"] for r in results) / len(results),
         "p50_latency": statistics.median(r["avg_latency"] for r in results),
-        "total_cost_usd": sum(r["avg_cost_usd"] for r in results),
-        "n_tasks": len(results),
-        "details": results
+        "eval_total_cost_usd": sum(r["task_total_cost_usd"] for r in results),
+        "n_tasks": len(results), "n_runs_per_task": n_runs, "details": results
     }
+```
+
+> 💡 命名注意：之前老版本写过 `pass@1` 和 `robustness`，但严格意义上：
+> - **pass@1** 是 HumanEval/MBPP 的指标（n=1 次采样的成功率），跟这里 n_runs 平均值不是一回事
+> - **robustness** 应当指对*扰动输入*的稳健，不是对*同输入重复*的一致性
+> 
+> 所以重命名为 `success_rate` 和 `repeatability`——更精准。
 
 if __name__ == "__main__":
-    dataset = json.loads(Path("eval_set.jsonl").read_text())  # [{id, question, gold}]
+    # JSONL = newline-delimited JSON, 一行一个对象
+    dataset = [
+        json.loads(line)
+        for line in Path("eval_set.jsonl").read_text().splitlines()
+        if line.strip()
+    ]
     print(json.dumps(evaluate(
         lambda q: {"answer": "TODO", "tokens_in": 100, "tokens_out": 50},
         dataset
     ), indent=2))
 ```
+
+> ⚠️ JSONL 不能用 `json.loads(整个文件)` ——必须按行解析。这是新手最常见的坑。
 
 ---
 
