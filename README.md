@@ -1,14 +1,14 @@
-# Agent-to-Agent 学习教程
+# A2A 协议研究 + 实操教程
 
-> **5 lab 实操课** — 从 MCP 协议到 swarm 评估，每节都有真代码、真数据、真使用场景。  
-> 写给想"知道能做什么、精确到代码层面"的开发者。
+> **Agent-to-Agent 全景研究** — MCP / Google A2A / ANP / ACP 协议对比 + 5 lab 实操 + 8 篇必读论文。  
+> 每节都有真代码、真数据、真使用场景，写给想"知道能做什么、精确到代码层面"的开发者。
 
 ---
 
-## 📚 课程结构
+## 📚 仓库结构
 
 ```
-agent-lessons/
+a2a-research/
 ├── README.md                 ← 你在这里
 ├── tutorial.pdf              ← 完整 PDF 版本
 ├── labs/
